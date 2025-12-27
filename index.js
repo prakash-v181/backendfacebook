@@ -5,9 +5,11 @@ require("dotenv").config();
 const connectDb = require("./config/db");
 const passport = require("./controllers/googleController");
 
+// ROUTES
 const authRoute = require("./routes/authRoute");
 const postRoute = require("./routes/postRoute");
 const userRoute = require("./routes/userRoute");
+const storyRoute = require("./routes/storyRoute");
 
 const app = express();
 
@@ -15,40 +17,35 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Allowed Origins for CORS
+// Allowed Origins
 const allowedOrigins = [
-  process.env.FRONTEND_URL,    // Vercel Frontend URL
-  "http://localhost:3000",     // Local frontend
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
 ];
 
-// CORS Setup
+// CORS Setup (IMPORTANT)
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS blocked from: " + origin));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Database
+// Database Connection
 connectDb();
 
-// Passport
+// Passport Auth
 app.use(passport.initialize());
 
-// Routes
+// *********** MAIN ROUTES (FIXED) ***********
 app.use("/auth", authRoute);
-app.use("/posts", postRoute);
-app.use("/users", userRoute);
+app.use("/users", userRoute);   // profile / check-auth / follow / mutual etc.
+app.use("/posts", postRoute);   // post APIs -> GET /posts, POST /posts
+app.use("/story", storyRoute);  // story APIs -> GET /story
 
-// Root API Check
+// Root Test API
 app.get("/", (req, res) => {
   res.send("Backend Running Successfully 🚀");
 });
@@ -56,9 +53,6 @@ app.get("/", (req, res) => {
 // Server
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
 
 
 // const express = require('express');
