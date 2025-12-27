@@ -5,12 +5,12 @@ const { generateToken } = require("../utils/generateToken");
 
 const router = express.Router();
 
-// Normal Auth Routes
+// Auth Routes
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/logout", logout);
 
-// ⭐ Google Auth Request
+// ⭐ Google Login Request
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -19,28 +19,27 @@ router.get(
   })
 );
 
-// ⭐ Google Callback
+// ⭐ Google OAuth Callback
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "https://facebook-prakash.vercel.app/user-login",
+    failureRedirect: `${process.env.FRONTEND_URL}/user-login`,
     session: false,
   }),
   (req, res) => {
-    const accessToken = generateToken(req.user);
+    const token = generateToken(req.user);
 
-    res.cookie("auth_token", accessToken, {
+    res.cookie("auth_token", token, {
       httpOnly: true,
-      sameSite: "none",
       secure: true,
+      sameSite: "none",
     });
 
-    res.redirect("https://facebook-prakash.vercel.app/");
+    return res.redirect(process.env.FRONTEND_URL);
   }
 );
 
 module.exports = router;
-
 
 
 
