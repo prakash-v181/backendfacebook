@@ -15,15 +15,25 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// Allowed Origins for CORS
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://facebook-prakash.vercel.app"
+  process.env.FRONTEND_URL,    // Vercel Frontend URL
+  "http://localhost:3000",     // Local frontend
 ];
 
+// CORS Setup
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS blocked from: " + origin));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -35,7 +45,7 @@ app.use(passport.initialize());
 
 // Routes
 app.use("/auth", authRoute);
-app.use("/users", postRoute);
+app.use("/posts", postRoute);
 app.use("/users", userRoute);
 
 // Root API Check
@@ -46,7 +56,6 @@ app.get("/", (req, res) => {
 // Server
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 
 
 
