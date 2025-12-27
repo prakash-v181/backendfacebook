@@ -1,14 +1,16 @@
 const express = require("express");
-const { registerUser, loginUser, logout } = require("../controllers/authController");
 const passport = require("passport");
+const { registerUser, loginUser, logout } = require("../controllers/authController");
 const { generateToken } = require("../utils/generateToken");
+
 const router = express.Router();
 
+// Normal Auth Routes
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/logout", logout);
 
-// Google Auth
+// ⭐ Google Auth Request
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -17,7 +19,7 @@ router.get(
   })
 );
 
-// Google Callback
+// ⭐ Google Callback
 router.get(
   "/google/callback",
   passport.authenticate("google", {
@@ -38,8 +40,6 @@ router.get(
 );
 
 module.exports = router;
-
-
 
 
 
