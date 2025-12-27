@@ -10,6 +10,8 @@ const authRoute = require("./routes/authRoute");
 const postRoute = require("./routes/postRoute");
 const userRoute = require("./routes/userRoute");
 const storyRoute = require("./routes/storyRoute");
+const storyRoute = require("./routes/storyRoute");
+
 
 const app = express();
 
@@ -44,6 +46,8 @@ app.use("/auth", authRoute);
 app.use("/users", userRoute);   // profile / check-auth / follow / mutual etc.
 app.use("/posts", postRoute);   // post APIs -> GET /posts, POST /posts
 app.use("/story", storyRoute);  // story APIs -> GET /story
+app.use("/story", storyRoute);
+
 
 // Root Test API
 app.get("/", (req, res) => {
