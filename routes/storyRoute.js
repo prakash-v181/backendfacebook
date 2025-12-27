@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-// TEMP Fake Response — No DB Needed Yet
 router.get("/", (req, res) => {
   res.json({
     status: "success",

@@ -5,13 +5,10 @@ require("dotenv").config();
 const connectDb = require("./config/db");
 const passport = require("./controllers/googleController");
 
-// ROUTES
 const authRoute = require("./routes/authRoute");
 const postRoute = require("./routes/postRoute");
 const userRoute = require("./routes/userRoute");
-const storyRoute = require("./routes/storyRoute");
-const storyRoute = require("./routes/storyRoute");
-
+const storyRoute = require("./routes/storyRoute"); // ⬅ ONLY ONCE
 
 const app = express();
 
@@ -19,37 +16,40 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Allowed Origins
+// Allowed Origins for CORS
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:3000",
+  process.env.FRONTEND_URL, // Vercel
+  "http://localhost:3000"    // Local
 ];
 
-// CORS Setup (IMPORTANT)
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS blocked: " + origin));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Database Connection
+// Database
 connectDb();
 
-// Passport Auth
+// Passport Init
 app.use(passport.initialize());
 
-// *********** MAIN ROUTES (FIXED) ***********
+// Routes
 app.use("/auth", authRoute);
-app.use("/users", userRoute);   // profile / check-auth / follow / mutual etc.
-app.use("/posts", postRoute);   // post APIs -> GET /posts, POST /posts
-app.use("/story", storyRoute);  // story APIs -> GET /story
-app.use("/story", storyRoute);
+app.use("/posts", postRoute);
+app.use("/users", userRoute);
+app.use("/story", storyRoute); // ⬅ Correct path
 
-
-// Root Test API
+// Root test
 app.get("/", (req, res) => {
   res.send("Backend Running Successfully 🚀");
 });
@@ -57,6 +57,10 @@ app.get("/", (req, res) => {
 // Server
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
+
 
 
 // const express = require('express');
