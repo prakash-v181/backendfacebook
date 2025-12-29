@@ -1,4 +1,4 @@
-const User = require("../models/User"); // FIXED PATH
+const User = require("../model/User");
 const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/generateToken");
 const response = require("../utils/responceHandler");
