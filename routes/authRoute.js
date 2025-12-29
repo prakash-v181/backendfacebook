@@ -3,6 +3,7 @@ const passport = require("passport");
 const { registerUser, loginUser, logout } = require("../controllers/authController");
 const { generateToken } = require("../utils/generateToken");
 
+
 const router = express.Router();
 
 // Auth Routes
