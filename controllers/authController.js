@@ -1,102 +1,212 @@
-const User = require("../model/User");
+const User = require("../models/User"); // FIXED PATH
+const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/generateToken");
 const response = require("../utils/responceHandler");
-const bcrypt = require('bcryptjs')
+
+// REGISTER USER
+const registerUser = async (req, res) => {
+  try {
+    const { username, email, password, gender, dateOfBirth } = req.body;
+
+    if (!username || !email || !password || !gender || !dateOfBirth) {
+      return response(res, 400, "All fields are required!", null, "error");
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return response(res, 400, "Email already exists!", null, "error");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      gender,
+      dateOfBirth,
+    });
+
+    const token = generateToken(newUser._id);
+
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return response(res, 201, "User registered successfully", {
+      status: "success",
+      id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+    });
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal Server Error");
+  }
+};
+
+// LOGIN USER
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return response(res, 400, "Email & password required", null, "error");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return response(res, 404, "User not found!", null, "error");
+    }
+
+    const matchPassword = await bcrypt.compare(password, user.password);
+    if (!matchPassword) {
+      return response(res, 401, "Invalid Password!", null, "error");
+    }
+
+    const token = generateToken(user._id);
+
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return response(res, 200, "User login successfully", {
+      status: "success",
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal Server Error");
+  }
+};
+
+// LOGOUT
+const logout = (req, res) => {
+  try {
+    res.cookie("auth_token", "", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      expires: new Date(0),
+    });
+
+    return response(res, 200, "User logged out successfully");
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal Server Error");
+  }
+};
+
+module.exports = { registerUser, loginUser, logout };
 
 
 
-const registerUser = async(req,res) =>{
-    try {
-         const {username,email,password,gender,dateOfBirth} = req.body;
+
+// const User = require("../model/User");
+// const { generateToken } = require("../utils/generateToken");
+// const response = require("../utils/responceHandler");
+// const bcrypt = require('bcryptjs')
+
+
+
+// const registerUser = async(req,res) =>{
+//     try {
+//          const {username,email,password,gender,dateOfBirth} = req.body;
          
-        //  check the existing user with email
-        const existingUser = await User.findOne({email});
-        if(existingUser){
-            return response(res,400,'User with this email already exists')
-        }
+//         //  check the existing user with email
+//         const existingUser = await User.findOne({email});
+//         if(existingUser){
+//             return response(res,400,'User with this email already exists')
+//         }
        
-        const hashedPassword = await bcrypt.hash(password,10)
-        const newUser = new User({
-            username,
-            email,
-            password:hashedPassword,
-            gender,
-            dateOfBirth
-        })
+//         const hashedPassword = await bcrypt.hash(password,10)
+//         const newUser = new User({
+//             username,
+//             email,
+//             password:hashedPassword,
+//             gender,
+//             dateOfBirth
+//         })
 
-        await newUser.save();
+//         await newUser.save();
         
-        const accessToken = generateToken(newUser);
+//         const accessToken = generateToken(newUser);
 
-        res.cookie("auth_token",accessToken,{
-            httpOnly: true,
-            sameSite:"none",
-            secure:true
-        })
-
-
-        return response(res,201,"User created successfully",{
-             username:newUser.username,
-             email:newUser.email
-        })
-
-    } catch (error) {
-        console.error(error)
-        return response(res,500,"Internal Server Error",error.message)
-    }
-}
+//         res.cookie("auth_token",accessToken,{
+//             httpOnly: true,
+//             sameSite:"none",
+//             secure:true
+//         })
 
 
-const loginUser = async(req,res) =>{
-    try {
-         const {email,password} = req.body;
+//         return response(res,201,"User created successfully",{
+//              username:newUser.username,
+//              email:newUser.email
+//         })
+
+//     } catch (error) {
+//         console.error(error)
+//         return response(res,500,"Internal Server Error",error.message)
+//     }
+// }
+
+
+// const loginUser = async(req,res) =>{
+//     try {
+//          const {email,password} = req.body;
          
-        //  check the existing user with email
-        const user = await User.findOne({email});
-        if(!user){
-            return response(res,404,'User not found with this email')
-        }
+//         //  check the existing user with email
+//         const user = await User.findOne({email});
+//         if(!user){
+//             return response(res,404,'User not found with this email')
+//         }
        
-        const matchPassword = await bcrypt.compare(password,user.password)
-        if(!matchPassword){
-            return response(res,404,'Invalid Password')
-        }
+//         const matchPassword = await bcrypt.compare(password,user.password)
+//         if(!matchPassword){
+//             return response(res,404,'Invalid Password')
+//         }
         
-        const accessToken = generateToken(user);
+//         const accessToken = generateToken(user);
 
-        res.cookie("auth_token",accessToken,{
-            httpOnly: true,
-            sameSite:"none",
-            secure:true
-        })
-
-
-        return response(res,201,"User logged in successfully",{
-             username:user.username,
-             email:user.email
-        })
-
-    } catch (error) {
-        console.error(error)
-        return response(res,500,"Internal Server Error",error.message)
-    }
-}
+//         res.cookie("auth_token",accessToken,{
+//             httpOnly: true,
+//             sameSite:"none",
+//             secure:true
+//         })
 
 
-const logout = (req,res) =>{
-    try {
-        res.cookie("auth_token", "", {
-            httpOnly: true,
-            sameSite:"none",
-            secure:true,
-            expires: new Date(0)
-        })
-        return response(res,200,"User logged out successfully")
-    } catch (error) {
-        console.error(error)
-        return response(res,500,"Internal Server Error",error.message)
-    }
-}
+//         return response(res,201,"User logged in successfully",{
+//              username:user.username,
+//              email:user.email
+//         })
+
+//     } catch (error) {
+//         console.error(error)
+//         return response(res,500,"Internal Server Error",error.message)
+//     }
+// }
 
 
-module.exports = {registerUser,loginUser,logout}
+// const logout = (req,res) =>{
+//     try {
+//         res.cookie("auth_token", "", {
+//             httpOnly: true,
+//             sameSite:"none",
+//             secure:true,
+//             expires: new Date(0)
+//         })
+//         return response(res,200,"User logged out successfully")
+//     } catch (error) {
+//         console.error(error)
+//         return response(res,500,"Internal Server Error",error.message)
+//     }
+// }
+
+
+// module.exports = {registerUser,loginUser,logout}
